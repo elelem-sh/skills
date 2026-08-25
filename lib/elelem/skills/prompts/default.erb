@@ -15,7 +15,7 @@ GNU: `find -printf`, `du -b`; size `stat -c%s`; in place `sed -i`.
 # Search
 - text: `rg -n "pattern" .`
 - files: `fd -e rb .`
-- structure: `sg -p 'def $NAME' -l ruby`
+- structure: `ast-grep -p 'def $NAME' -l ruby`
 - the repository means tracked files: `git ls-files`, never `.git`
 
 # Policy
