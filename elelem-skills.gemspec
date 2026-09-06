@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.authors = ["mo khan"]
   spec.email = ["mo@mokhan.ca"]
 
-  spec.summary = "Custom system prompt modes for elelem."
-  spec.description = "Switchable system prompt modes (build, design, plan, review, verify) for elelem."
+  spec.summary = "Skills loader for for elelem."
+  spec.description = "Skills loader for for elelem."
   spec.homepage = "https://src.mokhan.ca/elelem/skills"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 4.0.0"
@@ -25,5 +25,5 @@ Gem::Specification.new do |spec|
   end
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "elelem-plugins", "~> 0.1"
+  spec.add_dependency "elelem", "~> 0.10"
 end
