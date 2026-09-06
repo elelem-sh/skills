@@ -1,0 +1,29 @@
+# frozen_string_literal: true
+
+require_relative "lib/elelem/skills/version"
+
+Gem::Specification.new do |spec|
+  spec.name = "elelem-skills"
+  spec.version = Elelem::Skills::VERSION
+  spec.authors = ["mo khan"]
+  spec.email = ["mo@mokhan.ca"]
+
+  spec.summary = "Custom system prompt modes for elelem."
+  spec.description = "Switchable system prompt modes (build, design, plan, review, verify) for elelem."
+  spec.homepage = "https://src.mokhan.ca/elelem/skills"
+  spec.license = "MIT"
+  spec.required_ruby_version = ">= 4.0.0"
+  spec.metadata["allowed_push_host"] = "https://rubygems.org"
+  spec.metadata["homepage_uri"] = spec.homepage
+  spec.metadata["source_code_uri"] = spec.homepage
+
+  gemspec = File.basename(__FILE__)
+  spec.files = IO.popen(%w[git ls-files -z], chdir: __dir__, err: IO::NULL) do |ls|
+    ls.readlines("\x0", chomp: true).reject do |f|
+      (f == gemspec) || f.start_with?(*%w[bin/ Gemfile .gitignore])
+    end
+  end
+  spec.require_paths = ["lib"]
+
+  spec.add_dependency "elelem-plugins", "~> 0.1"
+end
