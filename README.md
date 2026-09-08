@@ -20,16 +20,11 @@ description: Test-driven development. Use when the user wants tests written firs
 
 `elelem-skills` scans, in this order (later paths shadow earlier ones by name):
 
-1. `lib/elelem/skills/builtin/*/SKILL.md` bundled with this gem:
-   - `scrum` -- a story-driven workflow (backlog files under
-     `.agents/backlog/`) with five phases (plan, design, build, review,
-     verify) as sibling files the model reads on demand. Used to live as
-     five separate ERB system prompts before the skills standard existed.
-   - `rfc` -- write/finalize/incorporate-feedback on RFC, PRD, and
-     Implementation Plan documents (`.agents/rfcs/`), adapted from
-     [lemieux/rfc-skills](https://github.com/lemieux/rfc-skills) (MIT) for
-     a single-agent, single-turn workflow -- decisions get made and
-     flagged `<!-- REVIEW: ... -->` instead of asking live.
+1. `lib/elelem/skills/builtin/*/SKILL.md` bundled with this gem -- currently
+   just `scrum`: a story-driven workflow (backlog files under
+   `.agents/backlog/`) with five phases (plan, design, build, review, verify)
+   as sibling files the model reads on demand. Used to live as five separate
+   ERB system prompts before the skills standard existed.
 2. `~/.agents/skills/*/SKILL.md` (user-level)
 3. `.agents/skills/*/SKILL.md` (project-level)
 
