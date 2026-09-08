@@ -62,7 +62,7 @@ module Elelem
         end
 
         names = Fetcher.new.fetch(origin)
-        agent.output.say(names.empty? ? "No skills installed from #{origin}." : "Installed: #{names.join(", ")}\nRun /reload to pick them up.")
+        agent.output.say(names.empty? ? "No skills installed from #{origin}." : "Installed: #{names.join(", ")}\nRestart elelem to pick them up (/reload does not currently re-register this gem's tool -- see README).")
       rescue Fetcher::FetchError => e
         agent.output.say(e.message, as: :error)
       end

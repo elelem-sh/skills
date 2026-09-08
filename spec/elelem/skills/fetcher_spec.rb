@@ -46,7 +46,7 @@ RSpec.describe Elelem::Skills::Fetcher do
       names = fetcher.fetch("example.com")
 
       expect(names).to eq(["example"])
-      expect(File.read(File.join(install_dir, "example", "SKILL.md"))).to eq(skill_body)
+      expect(File.read(File.join(install_dir, "example.com", "example", "SKILL.md"))).to eq(skill_body)
     end
 
     it "adds https:// when the origin has no scheme" do
@@ -110,6 +110,49 @@ RSpec.describe Elelem::Skills::Fetcher do
         .and_return(not_found)
 
       expect { fetcher.fetch("example.com") }.to raise_error(Elelem::Skills::Fetcher::FetchError, /404/)
+    end
+
+    it "partitions by host so two origins publishing the same skill name don't clobber each other" do
+      other_body = "---\nname: example\ndescription: A different example skill, from another host.\n---\nOther body.\n"
+      other_digest = "sha256:#{Digest::SHA256.hexdigest(other_body)}"
+      other_index = {
+        "$schema" => Elelem::Skills::Fetcher::SCHEMA,
+        "skills" => [
+          { "name" => "example", "type" => "skill-md", "description" => "A different example skill.",
+            "url" => "/.well-known/agent-skills/example/SKILL.md", "digest" => other_digest }
+        ]
+      }.to_json
+
+      allow(http).to receive(:get_response)
+        .with(URI("https://example.com/.well-known/agent-skills/index.json"))
+        .and_return(ok(index))
+      allow(http).to receive(:get_response)
+        .with(URI("https://example.com/.well-known/agent-skills/example/SKILL.md"))
+        .and_return(ok(skill_body))
+      allow(http).to receive(:get_response)
+        .with(URI("https://other.example/.well-known/agent-skills/index.json"))
+        .and_return(ok(other_index))
+      allow(http).to receive(:get_response)
+        .with(URI("https://other.example/.well-known/agent-skills/example/SKILL.md"))
+        .and_return(ok(other_body))
+
+      fetcher.fetch("example.com")
+      fetcher.fetch("other.example")
+
+      expect(File.read(File.join(install_dir, "example.com", "example", "SKILL.md"))).to eq(skill_body)
+      expect(File.read(File.join(install_dir, "other.example", "example", "SKILL.md"))).to eq(other_body)
+    end
+
+    it "lowercases the host when using it as a directory name" do
+      index_url = URI("https://Example.COM/.well-known/agent-skills/index.json")
+      allow(http).to receive(:get_response).with(index_url).and_return(ok(index))
+      allow(http).to receive(:get_response)
+        .with(URI("https://Example.COM/.well-known/agent-skills/example/SKILL.md"))
+        .and_return(ok(skill_body))
+
+      fetcher.fetch("Example.COM")
+
+      expect(File.directory?(File.join(install_dir, "example.com"))).to be(true)
     end
   end
 end

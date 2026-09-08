@@ -13,26 +13,35 @@ module Elelem
 
       FetchError = Class.new(StandardError)
 
-      def initialize(install_dir: File.expand_path("~/.agents/skills"), http: Net::HTTP)
+      def initialize(install_dir: Catalog::REMOTE_SKILLS, http: Net::HTTP)
         @install_dir = install_dir
         @http = http
       end
 
       # Fetches https://<origin>/.well-known/agent-skills/index.json, verifies
-      # it, and installs every type: "skill-md" entry into install_dir. Entries
-      # with an unsupported type (currently anything but "skill-md") are
-      # skipped with a warning, per the spec's guidance for unrecognized types.
+      # it, and installs every type: "skill-md" entry into
+      # install_dir/<index host>/<skill name>/SKILL.md. Partitioning by the
+      # index's own host (not the artifact URL's host, which the spec allows
+      # to point elsewhere, e.g. a CDN) keeps two publishers who happen to
+      # both name a skill "wrangler" from clobbering each other on disk --
+      # Catalog still resolves by frontmatter name across all of them, so a
+      # same-named skill from two hosts is still ambiguous at that level;
+      # this only fixes the fetch-time file collision, not that ambiguity.
+      # Entries with an unsupported type (currently anything but "skill-md")
+      # are skipped with a warning, per the spec's guidance.
       #
       # Returns the list of skill names installed.
       def fetch(origin)
-        index_url = URI.join(normalize(origin), "/.well-known/agent-skills/index.json")
+        base = normalize(origin)
+        index_url = URI.join(base, "/.well-known/agent-skills/index.json")
         index = get_json(index_url)
 
         unless index["$schema"] == SCHEMA
           raise FetchError, "unrecognized index schema #{index["$schema"].inspect} at #{index_url} (expected #{SCHEMA})"
         end
 
-        (index["skills"] || []).filter_map { |entry| install(entry, index_url) }
+        host_dir = File.join(@install_dir, sanitize(base.host))
+        (index["skills"] || []).filter_map { |entry| install(entry, index_url, host_dir) }
       end
 
       private
@@ -42,7 +51,11 @@ module Elelem
         URI.parse(origin)
       end
 
-      def install(entry, index_url)
+      def sanitize(host)
+        host.to_s.downcase.gsub(/[^a-z0-9.-]/, "_")
+      end
+
+      def install(entry, index_url, host_dir)
         name, type, url, digest = entry.values_at("name", "type", "url", "digest")
 
         unless type == "skill-md"
@@ -53,7 +66,7 @@ module Elelem
         body = get_raw(URI.join(index_url, url))
         verify!(name, body, digest)
 
-        dir = File.join(@install_dir, name)
+        dir = File.join(host_dir, sanitize(name))
         FileUtils.mkdir_p(dir)
         File.write(File.join(dir, "SKILL.md"), body)
 
