@@ -36,16 +36,18 @@ RSpec.describe Elelem::Skills::Catalog do
   end
 
   describe "GEM_SKILLS" do
-    it "bundles the scrum skill with the gem" do
+    it "bundles the scrum and rfc skills with the gem" do
       catalog = described_class.new
 
-      expect(catalog.all.map(&:name)).to include("scrum")
+      expect(catalog.all.map(&:name)).to include("scrum", "rfc")
     end
 
-    it "does not treat the scrum skill's phase files as separate skills" do
+    it "does not treat either skill's phase files as separate skills" do
       catalog = described_class.new
 
-      expect(catalog.all.map(&:name)).not_to include("plan", "design", "build", "review", "verify")
+      names = catalog.all.map(&:name)
+      expect(names).not_to include("plan", "design", "build", "review", "verify")
+      expect(names).not_to include("draft", "style", "finalize", "feedback")
     end
   end
 
