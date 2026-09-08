@@ -9,3 +9,9 @@ require_relative "skills/skill_file"
 require_relative "skills/catalog"
 require_relative "skills/fetcher"
 require_relative "skills/setup"
+
+Elelem.configure do |config|
+  config.setup(:skills) do |agent|
+    Elelem::Skills::Setup.call(agent)
+  end
+end

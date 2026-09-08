@@ -18,19 +18,7 @@ module Elelem
         @http = http
       end
 
-      # Fetches https://<origin>/.well-known/agent-skills/index.json, verifies
-      # it, and installs every type: "skill-md" entry into
-      # install_dir/<index host>/<skill name>/SKILL.md. Partitioning by the
-      # index's own host (not the artifact URL's host, which the spec allows
-      # to point elsewhere, e.g. a CDN) keeps two publishers who happen to
-      # both name a skill "wrangler" from clobbering each other on disk --
-      # Catalog still resolves by frontmatter name across all of them, so a
-      # same-named skill from two hosts is still ambiguous at that level;
-      # this only fixes the fetch-time file collision, not that ambiguity.
-      # Entries with an unsupported type (currently anything but "skill-md")
-      # are skipped with a warning, per the spec's guidance.
-      #
-      # Returns the list of skill names installed.
+      # Fetches https://<origin>/.well-known/agent-skills/index.json
       def fetch(origin)
         base = normalize(origin)
         index_url = URI.join(base, "/.well-known/agent-skills/index.json")

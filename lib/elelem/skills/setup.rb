@@ -69,7 +69,3 @@ module Elelem
     end
   end
 end
-
-Elelem.configure do |config|
-  config.setup(:skills) { |agent| Elelem::Skills::Setup.call(agent) }
-end

@@ -2,6 +2,6 @@
 
 module Elelem
   module Skills
-    VERSION = "0.10.0"
+    VERSION = "0.3.0"
   end
 end

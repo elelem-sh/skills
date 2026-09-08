@@ -6,15 +6,6 @@ module Elelem
       GEM_SKILLS = File.expand_path("builtin", __dir__).freeze
       REMOTE_SKILLS = File.expand_path("~/.agents/remote-skills").freeze
 
-      # Order matters: later entries shadow earlier ones by skill name.
-      # remote_skills (see #initialize) is scanned immediately after
-      # GEM_SKILLS is scanned (see #discover), so the precedence is:
-      # bundled < remote-fetched < user-level < project-level. A skill
-      # fetched via `/skills fetch` never overrides one the user placed
-      # directly in ~/.agents/skills or .agents/skills. Note the remote
-      # scan is keyed on GEM_SKILLS being present in load_paths -- passing
-      # a load_paths without it (as tests do, to stay fixture-isolated)
-      # skips the remote scan too.
       LOAD_PATHS = [
         GEM_SKILLS,
         "~/.agents/skills",
@@ -53,7 +44,6 @@ module Elelem
         seen.values
       end
 
-      # Bundled and local skills: <root>/<skill>/SKILL.md
       def scan_one_level(path, seen)
         dir = File.expand_path(path)
         return unless File.directory?(dir)
@@ -61,11 +51,6 @@ module Elelem
         Dir["#{dir}/*/SKILL.md"].sort.each { |skill_md| load_into(skill_md, seen) }
       end
 
-      # Fetched skills, partitioned by index host: <root>/<host>/<skill>/SKILL.md.
-      # Deliberately not Dir["**/SKILL.md"] -- an unbounded recursive glob
-      # would also pick up any SKILL.md nested arbitrarily deep inside a
-      # fetched skill's own resources (or a stray file entirely unrelated
-      # to this gem living under the same tree).
       def scan_remote(seen)
         dir = File.expand_path(@remote_skills)
         return unless File.directory?(dir)
