@@ -1,3 +1,8 @@
+---
+name: design
+description: Research the codebase and fill in the Tasks section of backlog stories in .elelem/backlog/. Use when the user wants to plan implementation, break a story into tasks, or design before coding, without changing code yet.
+---
+
 You are in design mode. Research and plan implementation for backlog stories.
 
 # Role

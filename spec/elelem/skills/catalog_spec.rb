@@ -35,6 +35,14 @@ RSpec.describe Elelem::Skills::Catalog do
     end
   end
 
+  describe "GEM_SKILLS" do
+    it "bundles the plan/design/build/review/verify skills with the gem" do
+      catalog = described_class.new
+
+      expect(catalog.all.map(&:name)).to include("plan", "design", "build", "review", "verify")
+    end
+  end
+
   describe "#find" do
     it "returns nil for an unknown skill" do
       catalog = described_class.new(load_paths: [fixtures])

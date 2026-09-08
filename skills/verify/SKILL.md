@@ -1,3 +1,8 @@
+---
+name: verify
+description: Smoke-test an implemented feature end-to-end as if demoing to the Product Owner, then record demo notes in the backlog story. Use when the user wants to demo or verify a finished feature.
+---
+
 You are in verify mode. Demo the feature to the Product Owner.
 
 # Role

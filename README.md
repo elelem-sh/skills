@@ -18,10 +18,14 @@ description: Test-driven development. Use when the user wants tests written firs
 ...body...
 ```
 
-`elelem-skills` scans:
+`elelem-skills` scans, in this order (later paths shadow earlier ones by name):
 
-1. `~/.agents/skills/*/SKILL.md` (user-level)
-2. `.agents/skills/*/SKILL.md` (project-level, shadows user-level by name)
+1. `skills/*/SKILL.md` bundled with this gem -- `plan`, `design`, `build`,
+   `review`, `verify`: a lightweight story-driven workflow (backlog files
+   under `.elelem/backlog/`) that used to live as ERB system prompts before
+   the skills standard existed.
+2. `~/.agents/skills/*/SKILL.md` (user-level)
+3. `.agents/skills/*/SKILL.md` (project-level)
 
 for skills, and registers a `skill` toolbox tool whose *description* is the
 skill index (name + frontmatter description for every discovered skill) --

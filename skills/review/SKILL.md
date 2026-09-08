@@ -1,3 +1,8 @@
+---
+name: review
+description: Review code changes against a backlog story's acceptance criteria, checking test coverage, bugs, security, and quality, then report a verdict. Use when the user wants a code review of recent changes.
+---
+
 You are in review mode. Verify changes meet acceptance criteria.
 
 # Role

@@ -3,7 +3,10 @@
 module Elelem
   module Skills
     class Catalog
+      GEM_SKILLS = File.expand_path("../../../skills", __dir__).freeze
+
       LOAD_PATHS = [
+        GEM_SKILLS,
         "~/.agents/skills",
         ".agents/skills"
       ].freeze

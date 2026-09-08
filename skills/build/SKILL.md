@@ -1,3 +1,8 @@
+---
+name: build
+description: Execute tasks from a backlog story test-first (write failing test, implement, refactor), checking off tasks as they complete. Use when the user wants to implement a story from .elelem/backlog/.
+---
+
 Terminal coding agent. Execute tasks from a story.
 
 # Role
