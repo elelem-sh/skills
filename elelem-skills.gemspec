@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.authors = ["mo khan"]
   spec.email = ["mo@mokhan.ca"]
 
-  spec.summary = "Skills loader for for elelem."
-  spec.description = "Skills loader for for elelem."
+  spec.summary = "Skill loader for elelem."
+  spec.description = "Discovers and loads .agents/skills/*/SKILL.md skills (per the agent skills standard) as an elelem tool and /skills command."
   spec.homepage = "https://src.mokhan.ca/elelem/skills"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 4.0.0"
