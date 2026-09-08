@@ -20,19 +20,23 @@ module Elelem
         all.find { |skill| skill.name == name }
       end
 
-      def each(&block)
-        all.each(&block)
+      def index(limit: nil)
+        summaries = all.map(&:summary)
+        summaries = summaries.map { |text| truncate(text, limit) } if limit
+        summaries.join("\n")
       end
 
       private
 
-      def discover(seen = {})
+      def discover
+        seen = {}
+
         @load_paths.each do |path|
           dir = File.expand_path(path)
           next unless File.directory?(dir)
 
           Dir["#{dir}/*/SKILL.md"].sort.each do |skill_md|
-            skill = Skill.load(skill_md)
+            skill = SkillFile.load(skill_md)
             next unless skill
 
             seen[skill.name] = skill
@@ -42,6 +46,12 @@ module Elelem
         end
 
         seen.values
+      end
+
+      def truncate(text, limit)
+        return text if text.length <= limit
+
+        "#{text[0, limit]}..."
       end
     end
   end

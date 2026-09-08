@@ -42,4 +42,18 @@ RSpec.describe Elelem::Skills::Catalog do
       expect(catalog.find("nope")).to be_nil
     end
   end
+
+  describe "#index" do
+    it "joins summaries without truncating by default" do
+      catalog = described_class.new(load_paths: [fixtures])
+
+      expect(catalog.index).to eq("tdd: Test-driven development. Use when the user wants tests written first.")
+    end
+
+    it "truncates summaries when a limit is given" do
+      catalog = described_class.new(load_paths: [fixtures])
+
+      expect(catalog.index(limit: 10)).to eq("tdd: Test-...")
+    end
+  end
 end
