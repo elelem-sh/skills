@@ -3,6 +3,8 @@ PATH
   specs:
     elelem-skills (0.8.0)
       elelem (~> 0.11)
+      json (~> 3.0)
+      net-http (>= 0.6)
 
 GEM
   remote: https://rubygems.org/
@@ -38,6 +40,8 @@ GEM
       regexp_parser (~> 2.0)
       simpleidn (~> 0.2)
     logger (1.7.0)
+    net-http (0.9.1)
+      uri (>= 0.11.1)
     open3 (0.2.1)
     optparse (0.8.1)
     pathname (0.5.0)
@@ -100,6 +104,7 @@ CHECKSUMS
   json (3.0.0) sha256=1ff82a28c05c5cc7b646f3e3a3ac710e4ae2aa933690cba12f1f650b0ecdeb99
   json_schemer (2.5.0) sha256=2f01fb4cce721a4e08dd068fc2030cffd0702a7f333f1ea2be6e8991f00ae396
   logger (1.7.0) sha256=196edec7cc44b66cfb40f9755ce11b392f21f7967696af15d274dde7edff0203
+  net-http (0.9.1) sha256=25ba0b67c63e89df626ed8fac771d0ad24ad151a858af2cc8e6a716ca4336996
   open3 (0.2.1) sha256=8e2d7d2113526351201438c1aa35c8139f0141c9e8913baa007c898973bf3952
   optparse (0.8.1) sha256=42bea10d53907ccff4f080a69991441d611fbf8733b60ed1ce9ee365ce03bd1a
   pathname (0.5.0) sha256=d5a331784f6e1f2fefb31c2ff0b8855aabfb661d807284ead9fa47b883d81623

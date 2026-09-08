@@ -41,15 +41,41 @@ links to bundled files (`[tests.md](tests.md)`) can be followed with the
 
 A `/skills [name]` command is also registered for human-driven listing/reading.
 
+## Remote discovery: `/skills fetch <origin>`
+
+Implements [cloudflare/agent-skills-discovery-rfc](https://github.com/cloudflare/agent-skills-discovery-rfc)
+(`.well-known/agent-skills/`) as a client. `/skills fetch example.com`:
+
+1. GETs `https://example.com/.well-known/agent-skills/index.json`
+2. Verifies `$schema` matches the v0.2.0 schema URI the spec defines --
+   an unrecognized or absent `$schema` is rejected outright, per spec
+3. For each `type: "skill-md"` entry, GETs the artifact and verifies its
+   SHA-256 against the index's `digest` before writing anything to disk;
+   a mismatch raises rather than installing unverified content
+4. Writes verified skills to `~/.agents/skills/<name>/SKILL.md`
+
+This is deliberately a separate, on-demand step from `Catalog` discovery,
+not folded into it -- `Catalog#discover` runs synchronously on every
+agent build (including `/reload`), so it stays local-filesystem-only and
+fast. Fetching is the only place in this gem that touches the network.
+
+Run `/reload` after a fetch to pick up the newly installed skills.
+
+**Not implemented**: `type: "archive"` entries (`.tar.gz`/`.zip` bundles
+with `scripts/`/`references/`/`assets/`) are skipped with a warning --
+only single-file `skill-md` entries install today. Verified against the
+real, live index at `developers.cloudflare.com`, which publishes both
+types; the `skill-md` entries (`wrangler`, `web-perf`, etc.) install and
+parse correctly, the `archive` entries are skipped as designed.
+
 ## What's not implemented
 
 - `agents/*.yaml` sidecar files (per-runtime display metadata, invocation
   policy) that some skills ship alongside `SKILL.md` -- ignored for now.
 - `allowed-tools` / permission scoping from the frontmatter.
-- Skill installation/updates (that's `npx skills`, a separate concern).
-- Remote discovery via `.well-known/agent-skills/` (see
-  [cloudflare/agent-skills-discovery-rfc](https://github.com/cloudflare/agent-skills-discovery-rfc))
-  -- this gem only discovers local filesystem paths.
+- Skill installation/updates from the `npx skills` package manager
+  ecosystem -- a separate concern from the well-known-URI discovery above.
+- `type: "archive"` fetch entries (see above).
 
 ## Setup
 

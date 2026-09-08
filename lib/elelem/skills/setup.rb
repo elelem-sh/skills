@@ -43,14 +43,28 @@ module Elelem
         agent = @agent
         completions = -> { catalog.all.map(&:name) }
 
-        agent.commands.register("skills", description: "List available skills", completions: completions) do |arg|
-          if arg && !arg.empty?
+        agent.commands.register("skills", description: "List available skills, or `/skills fetch <origin>` to install from a remote index", completions: completions) do |arg|
+          if arg&.start_with?("fetch ")
+            fetch(agent, arg.delete_prefix("fetch ").strip)
+          elsif arg && !arg.empty?
             skill = catalog.find(arg)
             skill ? agent.output.say(skill.body) : agent.output.say("Unknown skill: #{arg}")
           else
             agent.output.say(catalog.index)
           end
         end
+      end
+
+      def fetch(agent, origin)
+        if origin.empty?
+          agent.output.say("Usage: /skills fetch <origin>")
+          return
+        end
+
+        names = Fetcher.new.fetch(origin)
+        agent.output.say(names.empty? ? "No skills installed from #{origin}." : "Installed: #{names.join(", ")}\nRun /reload to pick them up.")
+      rescue Fetcher::FetchError => e
+        agent.output.say(e.message, as: :error)
       end
     end
   end
