@@ -3,11 +3,9 @@
 module Elelem
   module Skills
     class Catalog
-      GEM_SKILLS = File.expand_path("builtin", __dir__).freeze
       REMOTE_SKILLS = File.expand_path("~/.agents/remote-skills").freeze
 
       LOAD_PATHS = [
-        GEM_SKILLS,
         "~/.agents/skills",
         ".agents/skills"
       ].freeze
@@ -17,7 +15,8 @@ module Elelem
         @remote_skills = remote_skills
       end
 
-      def all
+      def all(reload: false)
+        @all = nil if reload
         @all ||= discover
       end
 
@@ -36,10 +35,8 @@ module Elelem
       def discover
         seen = {}
 
-        @load_paths.each do |path|
-          scan_one_level(path, seen)
-          scan_remote(seen) if path == GEM_SKILLS && @remote_skills
-        end
+        scan_remote(seen) if @remote_skills
+        @load_paths.each { |path| scan_one_level(path, seen) }
 
         seen.values
       end

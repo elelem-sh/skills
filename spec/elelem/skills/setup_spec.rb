@@ -48,7 +48,7 @@ RSpec.describe "elelem-skills setup" do
       agent = Elelem::Agent.new(Elelem::StubProvider.new, output: output)
       Elelem::Config.default.instance_variable_get(:@registration).setups.fetch("skills").call(agent)
 
-      expect(output).to receive(:say).with("tdd: Test-driven development. Use when the user wants tests written first.")
+      expect(output).to receive(:say).with("- **tdd**: Test-driven development. Use when the user wants tests written first.", as: :markdown)
 
       agent.commands.run("skills", nil)
     end
@@ -61,6 +61,62 @@ RSpec.describe "elelem-skills setup" do
       expect(output).to receive(:say).with("# TDD\n\nRed, green, refactor.")
 
       agent.commands.run("skills", "tdd")
+    end
+  end
+
+  describe "with an empty catalog" do
+    around do |example|
+      original = Elelem::Skills::Catalog::LOAD_PATHS
+      Elelem::Skills::Catalog.send(:remove_const, :LOAD_PATHS)
+      Elelem::Skills::Catalog.const_set(:LOAD_PATHS, [].freeze)
+      example.run
+    ensure
+      Elelem::Skills::Catalog.send(:remove_const, :LOAD_PATHS)
+      Elelem::Skills::Catalog.const_set(:LOAD_PATHS, original)
+    end
+
+    it "still registers the skill tool and /skills command so remote skills can be fetched" do
+      agent = Elelem::Agent.new(Elelem::StubProvider.new)
+      Elelem::Config.default.instance_variable_get(:@registration).setups.fetch("skills").call(agent)
+
+      expect(agent.toolbox.tool_for("skill")).not_to be_nil
+      expect(agent.commands.names).to include("/skills")
+    end
+
+    it "sees a skill fetched via /skills fetch without re-running setup" do
+      remote_root = Dir.mktmpdir
+      begin
+        original_remote = Elelem::Skills::Catalog::REMOTE_SKILLS
+        Elelem::Skills::Catalog.send(:remove_const, :REMOTE_SKILLS)
+        Elelem::Skills::Catalog.const_set(:REMOTE_SKILLS, remote_root)
+
+        output = instance_double(Elelem::Output)
+        allow(output).to receive(:say)
+        agent = Elelem::Agent.new(Elelem::StubProvider.new, output: output)
+        Elelem::Config.default.instance_variable_get(:@registration).setups.fetch("skills").call(agent)
+
+        fetcher = instance_double(Elelem::Skills::Fetcher, fetch: ["wrangler"])
+        allow(Elelem::Skills::Fetcher).to receive(:new).and_return(fetcher)
+        skill_dir = File.join(remote_root, "example.com", "wrangler")
+        FileUtils.mkdir_p(skill_dir)
+        File.write(File.join(skill_dir, "SKILL.md"), <<~SKILL)
+          ---
+          name: wrangler
+          description: fetched from example.com
+          ---
+          body
+        SKILL
+
+        agent.commands.run("skills", "fetch example.com")
+
+        expect(output).to have_received(:say).with(/Installed: wrangler/)
+        result = agent.toolbox.run("skill", { "name" => "wrangler" })
+        expect(result).to be_ok
+      ensure
+        FileUtils.rm_rf(remote_root)
+        Elelem::Skills::Catalog.send(:remove_const, :REMOTE_SKILLS)
+        Elelem::Skills::Catalog.const_set(:REMOTE_SKILLS, original_remote)
+      end
     end
   end
 end

@@ -24,6 +24,8 @@ Gem::Specification.new do |spec|
     end
   end
   spec.require_paths = ["lib"]
+  spec.bindir = "exe"
+  spec.executables = ["elelem-skills"]
 
   spec.add_dependency "elelem", "~> 0.11"
   spec.add_dependency "json", "~> 3.0"

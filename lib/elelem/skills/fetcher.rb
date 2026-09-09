@@ -13,9 +13,10 @@ module Elelem
 
       FetchError = Class.new(StandardError)
 
-      def initialize(install_dir: Catalog::REMOTE_SKILLS, http: Net::HTTP)
+      def initialize(install_dir: Catalog::REMOTE_SKILLS, http: Net::HTTP, lockfile: nil)
         @install_dir = install_dir
         @http = http
+        @lockfile = lockfile || Lockfile.new(File.join(install_dir, ".skill-lock.json"))
       end
 
       # Fetches https://<origin>/.well-known/agent-skills/index.json
@@ -28,8 +29,9 @@ module Elelem
           raise FetchError, "unrecognized index schema #{index["$schema"].inspect} at #{index_url} (expected #{SCHEMA})"
         end
 
-        host_dir = File.join(@install_dir, sanitize(base.host))
-        (index["skills"] || []).filter_map { |entry| install(entry, index_url, host_dir) }
+        host = sanitize(base.host)
+        host_dir = File.join(@install_dir, host)
+        (index["skills"] || []).filter_map { |entry| install(entry, index_url, host, host_dir) }
       end
 
       private
@@ -43,7 +45,7 @@ module Elelem
         host.to_s.downcase.gsub(/[^a-z0-9.-]/, "_")
       end
 
-      def install(entry, index_url, host_dir)
+      def install(entry, index_url, host, host_dir)
         name, type, url, digest = entry.values_at("name", "type", "url", "digest")
 
         unless type == "skill-md"
@@ -51,12 +53,14 @@ module Elelem
           return nil
         end
 
-        body = get_raw(URI.join(index_url, url))
+        skill_url = URI.join(index_url, url)
+        body = get_raw(skill_url)
         verify!(name, body, digest)
 
         dir = File.join(host_dir, sanitize(name))
         FileUtils.mkdir_p(dir)
         File.write(File.join(dir, "SKILL.md"), body)
+        @lockfile.record(host: host, name: name, url: skill_url.to_s, digest: digest)
 
         name
       end

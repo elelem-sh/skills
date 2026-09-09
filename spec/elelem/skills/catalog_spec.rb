@@ -35,20 +35,6 @@ RSpec.describe Elelem::Skills::Catalog do
     end
   end
 
-  describe "GEM_SKILLS" do
-    it "bundles the scrum skill with the gem" do
-      catalog = described_class.new
-
-      expect(catalog.all.map(&:name)).to include("scrum")
-    end
-
-    it "does not treat the scrum skill's phase files as separate skills" do
-      catalog = described_class.new
-
-      expect(catalog.all.map(&:name)).not_to include("plan", "design", "build", "review", "verify")
-    end
-  end
-
   describe "REMOTE_SKILLS" do
     it "discovers skills fetched into <remote_skills>/<host>/<name>/SKILL.md" do
       Dir.mktmpdir do |remote_root|
@@ -62,7 +48,7 @@ RSpec.describe Elelem::Skills::Catalog do
           body
         SKILL
 
-        catalog = described_class.new(load_paths: [described_class::GEM_SKILLS], remote_skills: remote_root)
+        catalog = described_class.new(load_paths: [], remote_skills: remote_root)
 
         expect(catalog.find("wrangler")&.description).to eq("fetched from example.com")
       end
@@ -80,7 +66,7 @@ RSpec.describe Elelem::Skills::Catalog do
           body
         SKILL
 
-        catalog = described_class.new(load_paths: [described_class::GEM_SKILLS], remote_skills: remote_root)
+        catalog = described_class.new(load_paths: [], remote_skills: remote_root)
 
         expect(catalog.find("nested-imposter")).to be_nil
       end
@@ -98,14 +84,14 @@ RSpec.describe Elelem::Skills::Catalog do
           body
         SKILL
 
-        catalog = described_class.new(load_paths: [described_class::GEM_SKILLS, fixtures], remote_skills: remote_root)
+        catalog = described_class.new(load_paths: [fixtures], remote_skills: remote_root)
 
         expect(catalog.find("tdd").description).to eq("Test-driven development. Use when the user wants tests written first.")
       end
     end
 
     it "is not scanned when remote_skills is nil" do
-      catalog = described_class.new(load_paths: [described_class::GEM_SKILLS], remote_skills: nil)
+      catalog = described_class.new(load_paths: [], remote_skills: nil)
 
       expect { catalog.all }.not_to raise_error
     end

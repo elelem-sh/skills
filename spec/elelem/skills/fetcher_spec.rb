@@ -3,6 +3,7 @@
 RSpec.describe Elelem::Skills::Fetcher do
   let(:install_dir) { Dir.mktmpdir }
   let(:http) { class_double(Net::HTTP) }
+  let(:lockfile) { Elelem::Skills::Lockfile.new(File.join(install_dir, ".skill-lock.json")) }
   let(:fetcher) { described_class.new(install_dir: install_dir, http: http) }
 
   after { FileUtils.rm_rf(install_dir) }
@@ -47,6 +48,24 @@ RSpec.describe Elelem::Skills::Fetcher do
 
       expect(names).to eq(["example"])
       expect(File.read(File.join(install_dir, "example.com", "example", "SKILL.md"))).to eq(skill_body)
+    end
+
+    it "records the install in the lockfile, keyed by host/name" do
+      allow(http).to receive(:get_response)
+        .with(URI("https://example.com/.well-known/agent-skills/index.json"))
+        .and_return(ok(index))
+      allow(http).to receive(:get_response)
+        .with(URI("https://example.com/.well-known/agent-skills/example/SKILL.md"))
+        .and_return(ok(skill_body))
+
+      fetcher.fetch("example.com")
+      entry = lockfile.read.dig("skills", "example.com/example")
+
+      expect(entry["host"]).to eq("example.com")
+      expect(entry["name"]).to eq("example")
+      expect(entry["url"]).to eq("https://example.com/.well-known/agent-skills/example/SKILL.md")
+      expect(entry["digest"]).to eq(digest)
+      expect(entry["installedAt"]).not_to be_nil
     end
 
     it "adds https:// when the origin has no scheme" do

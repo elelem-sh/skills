@@ -1,0 +1,6 @@
+#!/usr/bin/env -S ruby -W0
+# frozen_string_literal: true
+
+require "elelem/skills"
+
+Elelem::Skills::CLI.new(ARGV).run

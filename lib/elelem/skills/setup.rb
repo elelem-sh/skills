@@ -15,8 +15,6 @@ module Elelem
       end
 
       def call
-        return if @catalog.all.empty?
-
         register_tool
         register_command
       end
@@ -50,7 +48,8 @@ module Elelem
             skill = catalog.find(arg)
             skill ? agent.output.say(skill.body) : agent.output.say("Unknown skill: #{arg}")
           else
-            agent.output.say(catalog.index)
+            list = catalog.all.map { |skill| "- **#{skill.name}**: #{truncate(skill.description, SUMMARY_LIMIT)}" }.join("\n")
+            agent.output.say(list.empty? ? "No skills found." : list, as: :markdown)
           end
         end
       end
@@ -62,9 +61,18 @@ module Elelem
         end
 
         names = Fetcher.new.fetch(origin)
-        agent.output.say(names.empty? ? "No skills installed from #{origin}." : "Installed: #{names.join(", ")}\nRestart elelem to pick them up (/reload does not currently re-register this gem's tool -- see README).")
+        return agent.output.say("No skills installed from #{origin}.") if names.empty?
+
+        @catalog.all(reload: true)
+        agent.output.say("Installed: #{names.join(", ")}\nAvailable via /skills and the skill tool now. Restart elelem to refresh the skill tool's description with the new catalog.")
       rescue Fetcher::FetchError => e
         agent.output.say(e.message, as: :error)
+      end
+
+      def truncate(text, limit)
+        return text if text.length <= limit
+
+        "#{text[0, limit]}..."
       end
     end
   end
