@@ -95,7 +95,9 @@ RSpec.describe Elelem::Skills::Fetcher do
         .with(URI("https://example.com/.well-known/agent-skills/index.json"))
         .and_return(ok(bad))
 
-      expect { fetcher.fetch("example.com") }.to raise_error(Elelem::Skills::Fetcher::FetchError, /unrecognized index schema/)
+      expect do
+        fetcher.fetch("example.com")
+      end.to raise_error(Elelem::Skills::Fetcher::FetchError, /unrecognized index schema/)
     end
 
     it "raises when the schema field is absent (treated as incompatible v0.1.0)" do
@@ -104,7 +106,9 @@ RSpec.describe Elelem::Skills::Fetcher do
         .with(URI("https://example.com/.well-known/agent-skills/index.json"))
         .and_return(ok(no_schema))
 
-      expect { fetcher.fetch("example.com") }.to raise_error(Elelem::Skills::Fetcher::FetchError, /unrecognized index schema/)
+      expect do
+        fetcher.fetch("example.com")
+      end.to raise_error(Elelem::Skills::Fetcher::FetchError, /unrecognized index schema/)
     end
 
     it "skips archive entries and warns, without raising" do

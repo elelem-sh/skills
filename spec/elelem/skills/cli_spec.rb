@@ -44,7 +44,8 @@ RSpec.describe Elelem::Skills::CLI do
 
     it "lists discovered skills" do
       fixtures = File.expand_path("../../fixtures/skills", __dir__)
-      catalog = instance_double(Elelem::Skills::Catalog, all: [Elelem::Skills::Skill.new("tdd", "Test-driven development.", fixtures, "body")])
+      catalog = instance_double(Elelem::Skills::Catalog,
+                                all: [Elelem::Skills::Skill.new("tdd", "Test-driven development.", fixtures, "body")])
       allow(Elelem::Skills::Catalog).to receive(:new).and_return(catalog)
 
       output = capture_stdout { described_class.new(["list"]).run }

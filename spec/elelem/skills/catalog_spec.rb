@@ -86,7 +86,8 @@ RSpec.describe Elelem::Skills::Catalog do
 
         catalog = described_class.new(load_paths: [fixtures], remote_skills: remote_root)
 
-        expect(catalog.find("tdd").description).to eq("Test-driven development. Use when the user wants tests written first.")
+        expect(catalog.find("tdd").description)
+          .to eq("Test-driven development. Use when the user wants tests written first.")
       end
     end
 

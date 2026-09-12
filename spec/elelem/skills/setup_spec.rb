@@ -48,7 +48,9 @@ RSpec.describe "elelem-skills setup" do
       agent = Elelem::Session.new(Elelem::Agent.new(Elelem::StubProvider.new, output: output))
       Elelem::Config.default.instance_variable_get(:@registration).setups.fetch("skills").call(agent)
 
-      expect(output).to receive(:say).with("- **tdd**: Test-driven development. Use when the user wants tests written first.", as: :markdown)
+      expect(output).to receive(:say).with(
+        "- **tdd**: Test-driven development. Use when the user wants tests written first.", as: :markdown
+      )
 
       agent.commands.run("skills", nil)
     end

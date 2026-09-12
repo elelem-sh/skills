@@ -15,7 +15,8 @@ module Elelem
         end
 
         attrs = YAML.safe_load(frontmatter)
-        name, description = attrs["name"], attrs["description"]
+        name = attrs["name"]
+        description = attrs["description"]
         unless name && description
           Elelem.logger.warn("elelem-skills: #{path} is missing name or description, skipping")
           return nil

@@ -11,7 +11,8 @@ module Elelem
     class Fetcher
       SCHEMA = "https://schemas.agentskills.io/discovery/0.2.0/schema.json"
 
-      FetchError = Class.new(StandardError)
+      class FetchError < StandardError
+      end
 
       def initialize(install_dir: Catalog::REMOTE_SKILLS, http: Net::HTTP, lockfile: nil)
         @install_dir = install_dir
@@ -49,7 +50,8 @@ module Elelem
         name, type, url, digest = entry.values_at("name", "type", "url", "digest")
 
         unless type == "skill-md"
-          Elelem.logger.warn("elelem-skills: fetch: skipping #{name.inspect}, unsupported type #{type.inspect} (archives are not implemented)")
+          Elelem.logger.warn("elelem-skills: fetch: skipping #{name.inspect}, unsupported type #{type.inspect} " \
+                             "(archives are not implemented)")
           return nil
         end
 
@@ -86,7 +88,7 @@ module Elelem
         response.body
       rescue FetchError
         raise
-      rescue => e
+      rescue StandardError => e
         raise FetchError, "GET #{uri} failed: #{e.class}: #{e.message}"
       end
     end

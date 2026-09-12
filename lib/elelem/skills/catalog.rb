@@ -45,14 +45,14 @@ module Elelem
         dir = File.expand_path(path)
         return unless File.directory?(dir)
 
-        Dir["#{dir}/*/SKILL.md"].sort.each { |skill_md| load_into(skill_md, seen) }
+        Dir["#{dir}/*/SKILL.md"].each { |skill_md| load_into(skill_md, seen) }
       end
 
       def scan_remote(seen)
         dir = File.expand_path(@remote_skills)
         return unless File.directory?(dir)
 
-        Dir["#{dir}/*/*/SKILL.md"].sort.each { |skill_md| load_into(skill_md, seen) }
+        Dir["#{dir}/*/*/SKILL.md"].each { |skill_md| load_into(skill_md, seen) }
       end
 
       def load_into(skill_md, seen)
@@ -60,7 +60,7 @@ module Elelem
         return unless skill
 
         seen[skill.name] = skill
-      rescue => e
+      rescue StandardError => e
         Elelem.logger.warn("elelem-skills: failed to load #{skill_md}: #{e.message}")
       end
 
