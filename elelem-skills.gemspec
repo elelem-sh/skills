@@ -27,7 +27,7 @@ Gem::Specification.new do |spec|
   spec.bindir = "exe"
   spec.executables = ["elelem-skills"]
 
-  spec.add_dependency "elelem", "~> 0.11"
+  spec.add_dependency "elelem", "~> 0.12"
   spec.add_dependency "json", "~> 3.0"
   spec.add_dependency "net-http", "~> 0.9"
   spec.add_dependency "yaml", "~> 0.4"
