@@ -1,10 +1,12 @@
 {
-  "bootstrap-sha": "059df79acab896007dcd14292af5fe063881c838",
+  "bootstrap-sha": "c09ebbd8b832c0417d8d108435f8506996476483",
   "packages": {
     ".": {
       "release-type": "ruby",
       "package-name": "elelem-skills",
-      "version-file": "lib/elelem/skills/version.rb"
+      "version-file": "lib/elelem/skills/version.rb",
+      "bump-minor-pre-major": true,
+      "include-component-in-tag": false
     }
   }
 }
