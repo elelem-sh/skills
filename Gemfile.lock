@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     elelem-skills (0.3.0)
-      elelem (~> 0.12)
+      elelem (>= 0.12, < 1)
       json (~> 3.0)
       net-http (~> 0.9)
       yaml (~> 0.4)
