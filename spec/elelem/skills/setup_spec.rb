@@ -38,7 +38,7 @@ RSpec.describe "elelem-skills setup" do
       result = agent.toolbox.run("skill", { "name" => "nope" })
 
       expect(result).not_to be_ok
-      expect(result.error).to eq("unknown skill: nope")
+      expect(result[:error]).to eq("unknown skill: nope")
     end
   end
 
