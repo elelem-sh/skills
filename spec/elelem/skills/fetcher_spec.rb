@@ -64,7 +64,8 @@ RSpec.describe Elelem::Skills::Fetcher do
 
     it "does not let a remote index redirect to this machine, however it is spelled" do
       %w[http://127.0.0.1:8080/x https://[0:0::1]:8443/x https://127.0.0.2/x https://LOCALHOST./x
-         https://[::ffff:127.0.0.1]/x https://0.0.0.0/x].each do |target|
+         https://[::ffff:127.0.0.1]/x https://0.0.0.0/x https://127.1/x https://0x7f000001/x
+         https://2130706433/x].each do |target|
         allow(http).to receive(:get_response).and_return(moved(target))
 
         expect { fetcher.fetch("example.com") }.to raise_error(described_class::FetchError, /use https/), target

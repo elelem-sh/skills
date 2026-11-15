@@ -3,6 +3,7 @@
 require "digest"
 require "fileutils"
 require "ipaddr"
+require "socket"
 require "json"
 require "net/http"
 require "uri"
@@ -130,17 +131,24 @@ module Elelem
         get(URI.join(uri, response["location"].to_s), hops: hops - 1)
       end
 
-      # This machine, by address rather than spelling: 127.0.0.2, 127.1,
-      # [0:0::1], ::ffff:127.0.0.1, 0.0.0.0 and LOCALHOST. all count.
+      # This machine, by address rather than spelling: localhost names, and any
+      # numeric form the resolver accepts (127.1, 0x7f000001, [0:0::1],
+      # ::ffff:127.0.0.1, 0.0.0.0). A DNS name that points at this machine is
+      # not caught here; its TLS certificate would have to match.
       def local?(uri)
         name = uri.hostname.to_s.downcase.chomp(".")
         return true if LOCAL_NAMES.include?(name) || name.end_with?(".localhost")
 
-        address = IPAddr.new(name)
-        address = address.native if address.ipv4_mapped?
-        address.loopback? || address.to_i.zero?
-      rescue IPAddr::InvalidAddressError
-        false
+        numeric_addresses(name).any? { |address| address.loopback? || address.to_i.zero? }
+      end
+
+      def numeric_addresses(name)
+        Addrinfo.getaddrinfo(name, nil, nil, :STREAM, nil, Socket::AI_NUMERICHOST).map do |info|
+          address = IPAddr.new(info.ip_address)
+          address.ipv4_mapped? ? address.native : address
+        end
+      rescue SocketError
+        []
       end
 
       # https, or plain http for a skill server on this machine. A remote index
