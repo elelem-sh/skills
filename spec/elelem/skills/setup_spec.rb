@@ -97,7 +97,7 @@ RSpec.describe "elelem-skills setup" do
         agent = Elelem::Session.new(Elelem::Agent.new(Elelem::StubProvider.new, output: output))
         Elelem::Config.default.instance_variable_get(:@registration).setups.fetch("skills").call(agent)
 
-        fetcher = instance_double(Elelem::Skills::Fetcher, fetch: ["wrangler"])
+        fetcher = instance_double(Elelem::Skills::Fetcher, fetch: ["wrangler"], changed: [])
         allow(Elelem::Skills::Fetcher).to receive(:new).and_return(fetcher)
         skill_dir = File.join(remote_root, "example.com", "wrangler")
         FileUtils.mkdir_p(skill_dir)

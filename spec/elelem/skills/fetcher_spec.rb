@@ -62,6 +62,12 @@ RSpec.describe Elelem::Skills::Fetcher do
       expect { fetcher.fetch("http://example.com") }.to raise_error(described_class::FetchError, /use https/)
     end
 
+    it "does not let a remote index redirect to this machine" do
+      allow(http).to receive(:get_response).and_return(moved("http://127.0.0.1:8080/index.json"))
+
+      expect { fetcher.fetch("example.com") }.to raise_error(described_class::FetchError, /use https/)
+    end
+
     it "allows plain http on this machine, for testing" do
       allow(http).to receive(:get_response).and_return(not_found)
 
@@ -95,6 +101,7 @@ RSpec.describe Elelem::Skills::Fetcher do
       fetcher.fetch("example.com")
 
       expect(Elelem.logger).to have_received(:warn).with(%r{example.com/example changed: was #{digest}})
+      expect(fetcher.changed).to eq(["example.com/example"])
       expect(File.read(File.join(install_dir, "example.com", "example", "SKILL.md"))).to eq(changed)
     end
   end

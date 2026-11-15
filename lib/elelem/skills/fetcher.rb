@@ -23,8 +23,14 @@ module Elelem
       end
 
       # Fetches https://<origin>/.well-known/agent-skills/index.json
+      # Skills whose pinned digest changed in the last fetch, as "host/name".
+      attr_reader :changed
+
       def fetch(origin)
         base = normalize(origin)
+        @changed = []
+        # Only an origin on this machine may lead to this machine.
+        @local_origin = LOOPBACK.include?(base.host)
         index, index_url = get_json(URI.join(base, "/.well-known/agent-skills/index.json"))
 
         unless index["$schema"] == SCHEMA
@@ -83,6 +89,7 @@ module Elelem
         return if pinned.nil? || pinned == skill[:digest]
 
         Elelem.logger.warn("elelem-skills: #{host}/#{skill[:name]} changed: was #{pinned}, now #{skill[:digest]}")
+        @changed << "#{host}/#{skill[:name]}"
       end
 
       def verify!(name, body, digest)
@@ -122,9 +129,13 @@ module Elelem
         get(URI.join(uri, response["location"].to_s), hops: hops - 1)
       end
 
-      # Plain http only for this machine, for testing a skill server locally.
+      # https, or plain http for a skill server on this machine. A remote index
+      # cannot redirect to this machine, http or https.
       def secure?(uri)
-        uri.scheme == "https" || (uri.scheme == "http" && LOOPBACK.include?(uri.host))
+        local = LOOPBACK.include?(uri.host)
+        return false if local && !@local_origin
+
+        uri.scheme == "https" || (uri.scheme == "http" && local)
       end
     end
   end

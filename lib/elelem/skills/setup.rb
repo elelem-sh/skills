@@ -65,8 +65,11 @@ module Elelem
           return
         end
 
-        names = Fetcher.new.fetch(origin)
+        fetcher = Fetcher.new
+        names = fetcher.fetch(origin)
         return agent.output.say("No skills installed from #{origin}.") if names.empty?
+
+        agent.output.say("Changed since the last fetch: #{fetcher.changed.join(", ")}") if fetcher.changed.any?
 
         @catalog.all(reload: true)
         agent.output.say("Installed: #{names.join(", ")}\nAvailable via /skills and the skill tool now. " \
