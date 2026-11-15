@@ -42,6 +42,63 @@ RSpec.describe Elelem::Skills::Fetcher do
     }.to_json
   end
 
+  describe "#fetch, trust" do
+    def two_skill_index(second_digest)
+      second = { "name" => "second", "type" => "skill-md", "description" => "Second.",
+                 "url" => "/.well-known/agent-skills/second/SKILL.md", "digest" => second_digest }
+      JSON.parse(index).tap { |i| i["skills"] << second }.to_json
+    end
+
+    def serve(index_body, second_body: skill_body)
+      allow(http).to receive(:get_response)
+        .with(URI("https://example.com/.well-known/agent-skills/index.json")).and_return(ok(index_body))
+      allow(http).to receive(:get_response)
+        .with(URI("https://example.com/.well-known/agent-skills/example/SKILL.md")).and_return(ok(skill_body))
+      allow(http).to receive(:get_response)
+        .with(URI("https://example.com/.well-known/agent-skills/second/SKILL.md")).and_return(ok(second_body))
+    end
+
+    it "refuses a plain http origin" do
+      expect { fetcher.fetch("http://example.com") }.to raise_error(described_class::FetchError, /use https/)
+    end
+
+    it "allows plain http on this machine, for testing" do
+      allow(http).to receive(:get_response).and_return(not_found)
+
+      expect { fetcher.fetch("http://localhost:8080") }.to raise_error(described_class::FetchError, /404/)
+    end
+
+    it "installs nothing when one skill fails its digest" do
+      serve(two_skill_index("sha256:#{"0" * 64}"))
+
+      expect { fetcher.fetch("example.com") }.to raise_error(described_class::FetchError, /digest mismatch/)
+      expect(File).not_to exist(File.join(install_dir, "example.com", "example", "SKILL.md"))
+    end
+
+    it "refuses a skill with no digest" do
+      serve(index.sub(/"digest":"[^"]*"/, '"digest":null'))
+
+      expect { fetcher.fetch("example.com") }.to raise_error(described_class::FetchError, /no digest/)
+    end
+
+    it "warns when a pinned digest changes, then installs the new skill" do
+      serve(index)
+      fetcher.fetch("example.com")
+      changed = "---\nname: example\ndescription: Changed.\n---\nNew.\n"
+      changed_index = index.sub(digest, "sha256:#{Digest::SHA256.hexdigest(changed)}")
+      allow(http).to receive(:get_response)
+        .with(URI("https://example.com/.well-known/agent-skills/index.json")).and_return(ok(changed_index))
+      allow(http).to receive(:get_response)
+        .with(URI("https://example.com/.well-known/agent-skills/example/SKILL.md")).and_return(ok(changed))
+      allow(Elelem.logger).to receive(:warn)
+
+      fetcher.fetch("example.com")
+
+      expect(Elelem.logger).to have_received(:warn).with(%r{example.com/example changed: was #{digest}})
+      expect(File.read(File.join(install_dir, "example.com", "example", "SKILL.md"))).to eq(changed)
+    end
+  end
+
   describe "#fetch with redirects" do
     it "follows them, and resolves skill URLs against the final index URL" do
       allow(http).to receive(:get_response)
@@ -58,7 +115,7 @@ RSpec.describe Elelem::Skills::Fetcher do
     it "refuses a redirect from https to http" do
       allow(http).to receive(:get_response).and_return(moved("http://example.com/index.json"))
 
-      expect { fetcher.fetch("example.com") }.to raise_error(described_class::FetchError, /refusing redirect/)
+      expect { fetcher.fetch("example.com") }.to raise_error(described_class::FetchError, /use https/)
     end
 
     it "stops after too many redirects" do

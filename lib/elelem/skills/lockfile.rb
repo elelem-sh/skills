@@ -31,6 +31,10 @@ module Elelem
         write(data)
       end
 
+      def digest_for(host:, name:)
+        read.dig("skills", "#{host}/#{name}", "digest")
+      end
+
       def read
         return { "version" => VERSION, "skills" => {} } unless File.exist?(@path)
 
