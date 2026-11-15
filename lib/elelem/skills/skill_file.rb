@@ -8,6 +8,8 @@ module Elelem
       end
 
       def self.parse(text, path:)
+        # Files saved on Windows start with a BOM and end lines with \r\n.
+        text = text.delete_prefix("\uFEFF").gsub("\r\n", "\n")
         frontmatter, body = split(text)
         unless frontmatter
           Elelem.logger.warn("elelem-skills: #{path} has no frontmatter, skipping")

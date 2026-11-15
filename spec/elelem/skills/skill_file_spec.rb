@@ -56,4 +56,11 @@ RSpec.describe Elelem::Skills::SkillFile do
       expect(skill).to be_nil
     end
   end
+
+  it "reads a file with Windows line endings and a byte order mark" do
+    text = "\uFEFF---\r\nname: win\r\ndescription: Saved on Windows.\r\n---\r\nBody.\r\n"
+    skill = described_class.parse(text, path: "/skills/win/SKILL.md")
+
+    expect([skill.name, skill.description, skill.body]).to eq(["win", "Saved on Windows.", "Body."])
+  end
 end
