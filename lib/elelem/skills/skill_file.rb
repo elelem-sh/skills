@@ -4,7 +4,8 @@ module Elelem
   module Skills
     module SkillFile
       def self.load(path)
-        parse(File.read(path), path: path)
+        # UTF-8 whatever the locale, with any byte order mark dropped.
+        parse(File.read(path, encoding: "bom|utf-8"), path: path)
       end
 
       def self.parse(text, path:)

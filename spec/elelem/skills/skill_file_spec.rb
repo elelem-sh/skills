@@ -63,4 +63,17 @@ RSpec.describe Elelem::Skills::SkillFile do
 
     expect([skill.name, skill.description, skill.body]).to eq(["win", "Saved on Windows.", "Body."])
   end
+
+  it "loads a UTF-8 file with a byte order mark under a non-UTF-8 locale" do
+    Dir.mktmpdir do |dir|
+      path = File.join(dir, "SKILL.md")
+      File.binwrite(path, "\xEF\xBB\xBF---\r\nname: caf\u00e9\r\ndescription: Accents.\r\n---\r\nBody.\r\n")
+      original = Encoding.default_external
+      Encoding.default_external = Encoding::US_ASCII
+
+      expect(described_class.load(path).name).to eq("caf\u00e9")
+    ensure
+      Encoding.default_external = original
+    end
+  end
 end
