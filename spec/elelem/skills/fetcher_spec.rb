@@ -62,10 +62,13 @@ RSpec.describe Elelem::Skills::Fetcher do
       expect { fetcher.fetch("http://example.com") }.to raise_error(described_class::FetchError, /use https/)
     end
 
-    it "does not let a remote index redirect to this machine" do
-      allow(http).to receive(:get_response).and_return(moved("http://127.0.0.1:8080/index.json"))
+    it "does not let a remote index redirect to this machine, however it is spelled" do
+      %w[http://127.0.0.1:8080/x https://[0:0::1]:8443/x https://127.0.0.2/x https://LOCALHOST./x
+         https://[::ffff:127.0.0.1]/x https://0.0.0.0/x].each do |target|
+        allow(http).to receive(:get_response).and_return(moved(target))
 
-      expect { fetcher.fetch("example.com") }.to raise_error(described_class::FetchError, /use https/)
+        expect { fetcher.fetch("example.com") }.to raise_error(described_class::FetchError, /use https/), target
+      end
     end
 
     it "allows plain http on this machine, for testing" do

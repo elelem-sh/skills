@@ -2,6 +2,7 @@
 
 require "digest"
 require "fileutils"
+require "ipaddr"
 require "json"
 require "net/http"
 require "uri"
@@ -11,7 +12,7 @@ module Elelem
     class Fetcher
       SCHEMA = "https://schemas.agentskills.io/discovery/0.2.0/schema.json"
       MAX_REDIRECTS = 5
-      LOOPBACK = %w[localhost 127.0.0.1 ::1 [::1]].freeze
+      LOCAL_NAMES = %w[localhost].freeze
 
       class FetchError < StandardError
       end
@@ -30,7 +31,7 @@ module Elelem
         base = normalize(origin)
         @changed = []
         # Only an origin on this machine may lead to this machine.
-        @local_origin = LOOPBACK.include?(base.host)
+        @local_origin = local?(base)
         index, index_url = get_json(URI.join(base, "/.well-known/agent-skills/index.json"))
 
         unless index["$schema"] == SCHEMA
@@ -129,10 +130,23 @@ module Elelem
         get(URI.join(uri, response["location"].to_s), hops: hops - 1)
       end
 
+      # This machine, by address rather than spelling: 127.0.0.2, 127.1,
+      # [0:0::1], ::ffff:127.0.0.1, 0.0.0.0 and LOCALHOST. all count.
+      def local?(uri)
+        name = uri.hostname.to_s.downcase.chomp(".")
+        return true if LOCAL_NAMES.include?(name) || name.end_with?(".localhost")
+
+        address = IPAddr.new(name)
+        address = address.native if address.ipv4_mapped?
+        address.loopback? || address.to_i.zero?
+      rescue IPAddr::InvalidAddressError
+        false
+      end
+
       # https, or plain http for a skill server on this machine. A remote index
       # cannot redirect to this machine, http or https.
       def secure?(uri)
-        local = LOOPBACK.include?(uri.host)
+        local = local?(uri)
         return false if local && !@local_origin
 
         uri.scheme == "https" || (uri.scheme == "http" && local)
