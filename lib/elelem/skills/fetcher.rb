@@ -10,6 +10,7 @@ module Elelem
   module Skills
     class Fetcher
       SCHEMA = "https://schemas.agentskills.io/discovery/0.2.0/schema.json"
+      MAX_REDIRECTS = 5
 
       class FetchError < StandardError
       end
@@ -23,8 +24,7 @@ module Elelem
       # Fetches https://<origin>/.well-known/agent-skills/index.json
       def fetch(origin)
         base = normalize(origin)
-        index_url = URI.join(base, "/.well-known/agent-skills/index.json")
-        index = get_json(index_url)
+        index, index_url = get_json(URI.join(base, "/.well-known/agent-skills/index.json"))
 
         unless index["$schema"] == SCHEMA
           raise FetchError, "unrecognized index schema #{index["$schema"].inspect} at #{index_url} (expected #{SCHEMA})"
@@ -56,7 +56,7 @@ module Elelem
         end
 
         skill_url = URI.join(index_url, url)
-        body = get_raw(skill_url)
+        body, = get(skill_url)
         verify!(name, body, digest)
 
         dir = File.join(host_dir, sanitize(name))
@@ -75,21 +75,36 @@ module Elelem
         raise FetchError, "digest mismatch for #{name.inspect}: expected sha256:#{expected}, got sha256:#{actual}"
       end
 
+      # Returns the parsed body and the URL it came from after any redirects, so
+      # relative skill URLs resolve against where the index really is.
       def get_json(uri)
-        JSON.parse(get_raw(uri))
+        body, final = get(uri)
+        [JSON.parse(body), final]
       rescue JSON::ParserError => e
         raise FetchError, "invalid JSON at #{uri}: #{e.message}"
       end
 
-      def get_raw(uri)
+      def get(uri, hops: MAX_REDIRECTS)
         response = @http.get_response(uri)
+        return redirect(uri, response, hops) if response.is_a?(Net::HTTPRedirection)
         raise FetchError, "GET #{uri} -> #{response.code} #{response.message}" unless response.is_a?(Net::HTTPSuccess)
 
-        response.body
+        [response.body, uri]
       rescue FetchError
         raise
       rescue StandardError => e
         raise FetchError, "GET #{uri} failed: #{e.class}: #{e.message}"
+      end
+
+      def redirect(uri, response, hops)
+        raise FetchError, "GET #{uri}: too many redirects" if hops.zero?
+
+        target = URI.join(uri, response["location"].to_s)
+        if uri.scheme == "https" && target.scheme != "https"
+          raise FetchError, "GET #{uri}: refusing redirect from https to #{target}"
+        end
+
+        get(target, hops: hops - 1)
       end
     end
   end

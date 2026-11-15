@@ -15,6 +15,13 @@ RSpec.describe Elelem::Skills::Fetcher do
     res
   end
 
+  def moved(location)
+    res = Net::HTTPMovedPermanently.new("1.1", "301", "Moved Permanently")
+    res.instance_variable_set(:@read, true)
+    res["location"] = location
+    res
+  end
+
   def not_found
     res = Net::HTTPNotFound.new("1.1", "404", "Not Found")
     res.instance_variable_set(:@read, true)
@@ -33,6 +40,32 @@ RSpec.describe Elelem::Skills::Fetcher do
           "url" => "/.well-known/agent-skills/example/SKILL.md", "digest" => digest }
       ]
     }.to_json
+  end
+
+  describe "#fetch with redirects" do
+    it "follows them, and resolves skill URLs against the final index URL" do
+      allow(http).to receive(:get_response)
+        .with(URI("https://example.com/.well-known/agent-skills/index.json"))
+        .and_return(moved("https://www.example.com/.well-known/agent-skills/index.json"))
+      allow(http).to receive(:get_response)
+        .with(URI("https://www.example.com/.well-known/agent-skills/index.json")).and_return(ok(index))
+      allow(http).to receive(:get_response)
+        .with(URI("https://www.example.com/.well-known/agent-skills/example/SKILL.md")).and_return(ok(skill_body))
+
+      expect(fetcher.fetch("example.com")).to eq(["example"])
+    end
+
+    it "refuses a redirect from https to http" do
+      allow(http).to receive(:get_response).and_return(moved("http://example.com/index.json"))
+
+      expect { fetcher.fetch("example.com") }.to raise_error(described_class::FetchError, /refusing redirect/)
+    end
+
+    it "stops after too many redirects" do
+      allow(http).to receive(:get_response).and_return(moved("/again"))
+
+      expect { fetcher.fetch("example.com") }.to raise_error(described_class::FetchError, /too many redirects/)
+    end
   end
 
   describe "#fetch" do
