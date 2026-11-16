@@ -2,7 +2,7 @@
 
 RSpec.describe "elelem-skills setup" do
   let(:fixtures) { File.expand_path("../../fixtures/skills", __dir__) }
-  let(:agent) { Elelem::Session.new(Elelem::Agent.new(Elelem::StubProvider.new)) }
+  let(:agent) { Elelem::Session.new(Elelem::Agent.new(Object.new)) }
 
   around do |example|
     original = Elelem::Skills::Catalog::LOAD_PATHS
@@ -15,7 +15,7 @@ RSpec.describe "elelem-skills setup" do
   end
 
   before do
-    Elelem::Config.default.instance_variable_get(:@registration).setups.fetch("skills").call(agent)
+    Elelem::Skills::Setup.call(agent)
   end
 
   describe "skill tool" do
@@ -45,8 +45,8 @@ RSpec.describe "elelem-skills setup" do
   describe "/skills command" do
     it "lists the catalog" do
       output = instance_double(Elelem::Output)
-      agent = Elelem::Session.new(Elelem::Agent.new(Elelem::StubProvider.new, output: output))
-      Elelem::Config.default.instance_variable_get(:@registration).setups.fetch("skills").call(agent)
+      agent = Elelem::Session.new(Elelem::Agent.new(Object.new, output: output))
+      Elelem::Skills::Setup.call(agent)
 
       expect(output).to receive(:say).with(
         "- **tdd**: Test-driven development. Use when the user wants tests written first.", as: :markdown
@@ -57,8 +57,8 @@ RSpec.describe "elelem-skills setup" do
 
     it "shows a single skill's body" do
       output = instance_double(Elelem::Output)
-      agent = Elelem::Session.new(Elelem::Agent.new(Elelem::StubProvider.new, output: output))
-      Elelem::Config.default.instance_variable_get(:@registration).setups.fetch("skills").call(agent)
+      agent = Elelem::Session.new(Elelem::Agent.new(Object.new, output: output))
+      Elelem::Skills::Setup.call(agent)
 
       expect(output).to receive(:say).with("# TDD\n\nRed, green, refactor.")
 
@@ -78,8 +78,8 @@ RSpec.describe "elelem-skills setup" do
     end
 
     it "still registers the skill tool and /skills command so remote skills can be fetched" do
-      agent = Elelem::Session.new(Elelem::Agent.new(Elelem::StubProvider.new))
-      Elelem::Config.default.instance_variable_get(:@registration).setups.fetch("skills").call(agent)
+      agent = Elelem::Session.new(Elelem::Agent.new(Object.new))
+      Elelem::Config.apply(agent)
 
       expect(agent.toolbox.tool_for("skill")).not_to be_nil
       expect(agent.commands.names).to include("/skills")
@@ -94,8 +94,8 @@ RSpec.describe "elelem-skills setup" do
 
         output = instance_double(Elelem::Output)
         allow(output).to receive(:say)
-        agent = Elelem::Session.new(Elelem::Agent.new(Elelem::StubProvider.new, output: output))
-        Elelem::Config.default.instance_variable_get(:@registration).setups.fetch("skills").call(agent)
+        agent = Elelem::Session.new(Elelem::Agent.new(Object.new, output: output))
+        Elelem::Skills::Setup.call(agent)
 
         fetcher = instance_double(Elelem::Skills::Fetcher, fetch: ["wrangler"], changed: [])
         allow(Elelem::Skills::Fetcher).to receive(:new).and_return(fetcher)
