@@ -11,6 +11,7 @@ module Elelem
 
       def run
         command = @args.shift || "help"
+        command = "help" if %w[-h --help].include?(command)
         abort "Unknown command: #{command}\n\n#{usage}" unless COMMANDS.include?(command)
         send(command)
       end

@@ -62,5 +62,13 @@ RSpec.describe Elelem::Skills::CLI do
 
       expect(output).to include("Usage: elelem-skills")
     end
+
+    it "prints usage for -h and --help" do
+      %w[-h --help].each do |flag|
+        output = capture_stdout { described_class.new([flag]).run }
+
+        expect(output).to include("Usage: elelem-skills")
+      end
+    end
   end
 end
