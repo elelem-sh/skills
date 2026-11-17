@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/elelem-sh/skills/compare/v0.4.0...v0.4.1) (2026-11-17)
+
+
+### Bug Fixes
+
+* elelem-skills treats -h and --help as help instead of an unknown command ([0edbcc8](https://github.com/elelem-sh/skills/commit/0edbcc868cad3174fb898a321c8c3ce0fa2295c3))
+
 ## [0.4.0](https://github.com/elelem-sh/skills/compare/v0.3.0...v0.4.0) (2026-11-17)
 
 
