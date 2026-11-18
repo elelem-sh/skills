@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.2](https://github.com/elelem-sh/skills/compare/v0.4.1...v0.4.2) (2026-11-18)
+
+
+### Bug Fixes
+
+* **deps:** accept the json that Ruby 4.0 ships ([7c79852](https://github.com/elelem-sh/skills/commit/7c79852730a53ba96a4aa88e264a968ae1b9beb2))
+
 ## [0.4.1](https://github.com/elelem-sh/skills/compare/v0.4.0...v0.4.1) (2026-11-17)
 
 
